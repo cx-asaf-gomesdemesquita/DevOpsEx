@@ -1,0 +1,54 @@
+folder('KubernetesJobs') {
+    description('Jobs that run on Kubernetes')
+}
+
+pipelineJob('KubernetesJobs/db-timestamp-job') {
+    definition {
+        cps {
+            script('''
+pipeline {
+    agent {
+        kubernetes {
+            yaml """
+apiVersion: v1
+kind: Pod
+metadata:
+  namespace: jenkins-workers
+spec:
+  containers:
+  - name: postgres-client
+    image: postgres:latest
+    command:
+    - cat
+    tty: true
+    env:
+    - name: PGPASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: postgres-credentials
+          key: postgres-password
+"""
+            namespace 'jenkins-workers'
+            defaultContainer 'postgres-client'
+        }
+    }
+    triggers {
+        cron('*/5 * * * *')
+    }
+    stages {
+        stage('Record Time') {
+            steps {
+                container('postgres-client') {
+                    sh "psql -h postgres-postgresql.database.svc.cluster.local -U admin -d postgres -c \\"CREATE TABLE IF NOT EXISTS time_records (id SERIAL PRIMARY KEY, recorded_time TIMESTAMP);\\""
+                    sh "psql -h postgres-postgresql.database.svc.cluster.local -U admin -d postgres -c \\"INSERT INTO time_records (recorded_time) VALUES (NOW());\\""
+                    sh "echo 'Time recorded successfully!'"
+                }
+            }
+        }
+    }
+}
+            ''')
+            sandbox(true)
+        }
+    }
+}
