@@ -1,0 +1,14 @@
+deployment:
+  replicas: 2
+
+ingressRoute:
+  dashboard:
+    enabled: true
+
+additionalArguments:
+  - "--api.dashboard=true"
+  - "--entrypoints.web.address=:80"
+  - "--providers.kubernetesingress"
+
+service:
+  type: LoadBalancer
