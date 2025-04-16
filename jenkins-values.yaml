@@ -1,0 +1,25 @@
+controller:
+  installPlugins:
+    - kubernetes:latest
+    - workflow-aggregator:latest
+    - git:latest
+    - configuration-as-code:latest
+    - job-dsl:latest
+  admin:
+    username: admin
+    password: admin123
+  serviceType: ClusterIP
+  
+  # For HA configuration
+  replicas: 2
+  
+persistence:
+  enabled: true
+  size: 10Gi
+
+serviceAccount:
+  create: true
+  
+# Allow Jenkins to create pods in the cluster
+rbac:
+  create: true
