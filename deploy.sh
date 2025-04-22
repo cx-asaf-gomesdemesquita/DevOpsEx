@@ -5,6 +5,18 @@
 
 set -e
 
+add_helm_repo_if_missing() {
+  local repo_name="$1"
+  local repo_url="$2"
+
+  if ! helm repo list | awk '{print $1}' | grep -q "^${repo_name}$"; then
+    echo "Adding Helm repo: $repo_name"
+    helm repo add "$repo_name" "$repo_url"
+  else
+    echo "Helm repo '$repo_name' already exists. Skipping..."
+  fi
+}
+
 function install_solution() {
     echo "Installing the DevOps Challenge solution..."
     
@@ -18,10 +30,10 @@ function install_solution() {
     
     # Add Helm repositories
     echo "Adding Helm repositories..."
-    helm repo add bitnami https://charts.bitnami.com/bitnami
-    helm repo add jenkins https://charts.jenkins.io
-    helm repo add traefik https://helm.traefik.io/traefik
-    helm repo add grafana https://grafana.github.io/helm-charts
+    add_helm_repo_if_missing traefik https://helm.traefik.io/traefik
+    add_helm_repo_if_missing jenkins https://charts.jenkins.io
+    add_helm_repo_if_missing bitnami https://charts.bitnami.com/bitnami
+    add_helm_repo_if_missing grafana https://grafana.github.io/helm-charts
     helm repo update
     
     # Deploy PostgreSQL
@@ -475,8 +487,7 @@ EOF
     echo "1. Go to Jenkins http://jenkins.local"
     echo "2. Create a new job named 'seed-job' of type 'Freestyle project'"
     echo "3. Add a build step 'Process Job DSLs'"
-    echo "4. Copy the Job DSL script from the jenkins-job-dsl.yaml file"
-    echo "5. Save and run the job"
+    echo "4. Save and run the job"
 }
 
 function uninstall_solution() {
