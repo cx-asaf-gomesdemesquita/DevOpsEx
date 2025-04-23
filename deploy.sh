@@ -148,12 +148,33 @@ additionalArguments:
   - "--api.dashboard=true"
   - "--entrypoints.web.address=:80"
   - "--providers.kubernetesingress"
+  - "--providers.kubernetescrd"
+  - "--log.level=INFO"
 
 service:
   type: LoadBalancer
+
+# Explicitly enable the ingress controller
+ingressClass:
+  enabled: true
+  isDefaultClass: true
 EOF
     
     helm install traefik traefik/traefik --namespace traefik -f traefik-values.yaml
+
+echo "Creating Traefik IngressClass explicitly..."
+cat > traefik-ingressclass.yaml << EOF
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  name: traefik
+  annotations:
+    ingressclass.kubernetes.io/is-default-class: "true"
+spec:
+  controller: traefik.io/ingress-controller
+EOF
+
+kubectl apply -f traefik-ingressclass.yaml
     
     # Create Ingress resources
     echo "Creating Ingress resources..."
@@ -164,9 +185,8 @@ kind: Ingress
 metadata:
   name: jenkins-ingress
   namespace: jenkins
-  annotations:
-    kubernetes.io/ingress.class: traefik
 spec:
+  ingressClassName: traefik
   rules:
   - host: jenkins.local
     http:
@@ -188,9 +208,8 @@ kind: Ingress
 metadata:
   name: traefik-dashboard-ingress
   namespace: traefik
-  annotations:
-    kubernetes.io/ingress.class: traefik
 spec:
+  ingressClassName: traefik
   rules:
   - host: traefik.local
     http:
@@ -245,9 +264,8 @@ kind: Ingress
 metadata:
   name: grafana-ingress
   namespace: monitoring
-  annotations:
-    kubernetes.io/ingress.class: traefik
 spec:
+  ingressClassName: traefik
   rules:
   - host: grafana.local
     http:
