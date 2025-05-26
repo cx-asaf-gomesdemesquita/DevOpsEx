@@ -673,12 +673,6 @@ EOF
     echo "- Username: admin"
     echo "- Password: admin123"
     echo ""
-    echo "Jenkins will automatically create the following jobs:"
-    echo "1. JobDSL-Seed - A seed job that uses Job DSL to create other jobs"
-    echo "2. example-pipeline - A Kubernetes pipeline example"
-    echo "3. db-connection-test - A job that tests PostgreSQL connectivity"
-    echo ""
-    echo "Note: The jobs will be created automatically during Jenkins startup."
 }
 
 function uninstall_solution() {
